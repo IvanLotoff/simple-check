@@ -1,0 +1,47 @@
+version: "3.7"
+
+services:
+  database:
+    image: postgres
+    container_name: postgres_user
+    environment:
+      POSTGRES_DB: 'my_database'
+      POSTGRES_USER: 'pguser'
+      POSTGRES_PASSWORD: 'pgpass'
+    ports:
+      - 5432:5432
+    volumes:
+      - ./pg-data:/var/lib/postgresql/data
+      - ./sql-scripts:/docker-entrypoint-initdb.d
+    networks:
+      - net
+
+  backend:
+    container_name: backend_container
+    depends_on:
+      - database
+    build:
+      context: .
+      dockerfile: Dockerfile
+      args:
+        DB_NAME: 'my_database'
+        DB_USER: 'pguser'
+        DB_PASSWORD: 'pgpass'
+        DB_PORT: 5432
+        DB_SCHEMA: 'postgresql'
+        DB_CONTAINER_NAME: 'database'
+    environment:
+      DB_NAME: 'my_database'
+      DB_USER: 'pguser'
+      DB_PASSWORD: 'pgpass'
+      DB_PORT: 5432
+      DB_SCHEMA: 'postgresql'
+      DB_CONTAINER_NAME: 'database'
+    ports:
+      - 8080:8080
+    networks:
+      - net
+
+networks:
+  net:
+    driver: bridge
